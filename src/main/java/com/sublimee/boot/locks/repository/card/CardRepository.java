@@ -1,14 +1,15 @@
 package com.sublimee.boot.locks.repository.card;
 
 import com.sublimee.boot.locks.model.card.Card;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface CardRepository extends JpaRepository<Card, Integer> {
+import javax.persistence.EntityManager;
+import java.util.function.Consumer;
 
-//     void persist(Order item);
 
-//     Order executeInTransaction(Function<EntityManager, Order> function);
+public interface CardRepository {
+
+    void persist(Card item);
+
+    void executeInTransaction(Consumer<EntityManager> consumer);
 
 }
