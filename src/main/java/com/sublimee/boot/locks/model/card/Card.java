@@ -29,6 +29,6 @@ public class Card {
     private UUID id;
 
     @Column(name = "balance")
-    private Number balance;
+    private Integer balance;
 
 }
