@@ -6,17 +6,21 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.UUID;
 
-@Entity
-@Table(name = "card")
+
 @Data
 @EqualsAndHashCode(exclude = {"id"})
 @AllArgsConstructor
 @NoArgsConstructor
-public class Card {
+@MappedSuperclass
+public class Card implements Serializable {
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -26,9 +30,9 @@ public class Card {
     )
     @Column(name = "id", updatable = false, nullable = false)
     @NotNull
-    private UUID id;
+    protected UUID id;
 
     @Column(name = "balance")
-    private Integer balance;
+    protected Integer balance;
 
 }

@@ -2,6 +2,7 @@ package com.mymaldonado.sample.boot;
 
 import com.sublimee.boot.locks.Application;
 import com.sublimee.boot.locks.model.card.Card;
+import com.sublimee.boot.locks.model.card.VersionedCard;
 import com.sublimee.boot.locks.repository.card.CardRepository;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +36,7 @@ public class ApplicationTests {
             cardRepository.persist(new Card());
 
             es.execute(() -> cardRepository.executeInTransaction(entityManager -> {
-                List<Card> cards = entityManager.createQuery("select c from Card c", Card.class)
+                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .getResultList();
                 try {
@@ -50,14 +51,13 @@ public class ApplicationTests {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                List<Card> cards = entityManager.createQuery("select c from Card c", Card.class)
+                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
-						.setHint("javax.persistence.lock.timeout", 100)
+                        .setHint("javax.persistence.lock.timeout", 100)
                         .getResultList();
                 cards.get(0).setBalance(1000);
             }));
 
-            es.shutdown();
             es.awaitTermination(1, TimeUnit.MINUTES);
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,7 +71,7 @@ public class ApplicationTests {
             cardRepository.persist(new Card());
 
             es.execute(() -> cardRepository.executeInTransaction(entityManager -> {
-                List<Card> cards = entityManager.createQuery("select c from Card c", Card.class)
+                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .getResultList();
                 try {
@@ -86,7 +86,7 @@ public class ApplicationTests {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                List<Card> cards = entityManager.createQuery("select c from Card c", Card.class)
+                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .setHint("javax.persistence.lock.timeout", 0)
                         .getResultList();
@@ -96,6 +96,34 @@ public class ApplicationTests {
             es.shutdown();
             es.awaitTermination(1, TimeUnit.MINUTES);
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void optimisticLock() {
+        ExecutorService es = Executors.newFixedThreadPool(2);
+        try {
+            cardRepository.persist(new Card());
+
+            es.execute(() -> cardRepository.executeInTransaction(entityManager -> {
+                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
+                        .getResultList();
+                es.execute(() -> cardRepository.executeInTransaction(entityManager2 -> {
+                    List<VersionedCard> cards2 = entityManager2.createQuery("select c from VersionedCard c", VersionedCard.class)
+                            .getResultList();
+                    cards2.get(0).setBalance(1000);
+                }));
+                try {
+                    TimeUnit.SECONDS.sleep(30);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                cards.get(0).setBalance(1000);
+            }));
+
+            es.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
