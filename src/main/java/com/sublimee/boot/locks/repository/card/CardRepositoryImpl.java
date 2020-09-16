@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.*;
+import java.math.BigInteger;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -27,9 +28,13 @@ public class CardRepositoryImpl implements CardRepository {
     }
 
     @Override
-    public Integer count() {
-        Query query = entityManager.createQuery("select count(*) from VersionedCard");
-        return (Integer) query.getSingleResult();
+    public BigInteger count() {
+        Query query = entityManager.createNativeQuery("select count(*) from versioned_card");
+        try {
+            return (BigInteger) query.getSingleResult();
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     @Override
@@ -46,7 +51,6 @@ public class CardRepositoryImpl implements CardRepository {
         consumer.accept(entityManager);
 
         transaction.commit();
-        entityManager.close();
     }
 
 }
