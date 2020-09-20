@@ -1,7 +1,7 @@
 package com.mymaldonado.sample.boot;
 
 import com.sublimee.boot.locks.Application;
-import com.sublimee.boot.locks.model.card.Card;
+import com.sublimee.boot.locks.model.card.UnversionedCard;
 import com.sublimee.boot.locks.model.card.VersionedCard;
 import com.sublimee.boot.locks.repository.card.CardRepository;
 import org.junit.Test;
@@ -33,10 +33,10 @@ public class ApplicationTests {
     public void selectForUpdate() {
         ExecutorService es = Executors.newFixedThreadPool(2);
         try {
-            cardRepository.persist(new Card());
+            cardRepository.persist(new UnversionedCard());
 
             es.execute(() -> cardRepository.executeInTransaction(entityManager -> {
-                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
+                List<UnversionedCard> cards = entityManager.createQuery("select c from UnversionedCard c", UnversionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .getResultList();
                 try {
@@ -51,14 +51,15 @@ public class ApplicationTests {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
+                List<UnversionedCard> cards = entityManager.createQuery("select c from UnversionedCard c", UnversionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .setHint("javax.persistence.lock.timeout", 100)
                         .getResultList();
                 cards.get(0).setBalance(1000);
             }));
 
-            es.awaitTermination(1, TimeUnit.MINUTES);
+            es.shutdown();
+            es.awaitTermination(10, TimeUnit.SECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -68,10 +69,10 @@ public class ApplicationTests {
     public void selectForUpdateNoWait() {
         ExecutorService es = Executors.newFixedThreadPool(2);
         try {
-            cardRepository.persist(new Card());
+            cardRepository.persist(new UnversionedCard());
 
             es.execute(() -> cardRepository.executeInTransaction(entityManager -> {
-                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
+                List<UnversionedCard> cards = entityManager.createQuery("select c from UnversionedCard c", UnversionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .getResultList();
                 try {
@@ -86,7 +87,7 @@ public class ApplicationTests {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
+                List<UnversionedCard> cards = entityManager.createQuery("select c from UnversionedCard c", UnversionedCard.class)
                         .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                         .setHint("javax.persistence.lock.timeout", 0)
                         .getResultList();
@@ -94,7 +95,7 @@ public class ApplicationTests {
             }));
 
             es.shutdown();
-            es.awaitTermination(1, TimeUnit.MINUTES);
+            es.awaitTermination(10, TimeUnit.SECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -104,7 +105,7 @@ public class ApplicationTests {
     public void optimisticLock() {
         ExecutorService es = Executors.newFixedThreadPool(2);
         try {
-            cardRepository.persist(new Card());
+            cardRepository.persist(new VersionedCard());
 
             es.execute(() -> cardRepository.executeInTransaction(entityManager -> {
                 List<VersionedCard> cards = entityManager.createQuery("select c from VersionedCard c", VersionedCard.class)
@@ -122,7 +123,8 @@ public class ApplicationTests {
                 cards.get(0).setBalance(1000);
             }));
 
-            es.awaitTermination(1, TimeUnit.MINUTES);
+            es.shutdown();
+            es.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
