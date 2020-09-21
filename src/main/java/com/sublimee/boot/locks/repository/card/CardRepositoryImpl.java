@@ -1,34 +1,30 @@
 package com.sublimee.boot.locks.repository.card;
 
 import com.sublimee.boot.locks.model.card.Card;
-import com.sublimee.boot.locks.model.card.VersionedCard;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceUnit;
-import java.util.UUID;
+import javax.persistence.*;
 import java.util.function.Consumer;
 
 @Repository
-public class CardRepositoryImpl implements CardRepository {
+public class CardRepositoryImpl {
 
     @PersistenceUnit(unitName = "cards")
     private EntityManagerFactory emf;
 
-    @Override
+
     public void persist(Card item) {
         executeInTransaction(entityManager -> entityManager.persist(item));
     }
 
-    @Override
-    public Card find(UUID id) {
+    public Integer count() {
         EntityManager entityManager = emf.createEntityManager();
-        return entityManager.find(VersionedCard.class, id);
+        Query query = entityManager.createNativeQuery("select count(*) from versioned_card");
+        Integer result = (Integer) query.getSingleResult();
+        entityManager.close();
+        return result;
     }
 
-    @Override
     public void executeInTransaction(Consumer<EntityManager> consumer) {
         EntityManager entityManager = emf.createEntityManager();
         EntityTransaction transaction = entityManager.getTransaction();

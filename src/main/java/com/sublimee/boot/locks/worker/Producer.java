@@ -22,10 +22,14 @@ public class Producer implements Runnable {
     }
 
     private void process() {
-        for (int i = 0; i < 1_00; i++) {
+        for (int i = 0; i < 2500; i++) {
             VersionedCard versionedCard = new VersionedCard();
             versionedCard.setBalance(random.nextInt());
-            queue.add(versionedCard);
+            try {
+                queue.put(versionedCard);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
