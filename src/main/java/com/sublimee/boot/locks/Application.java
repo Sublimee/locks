@@ -1,14 +1,13 @@
 package com.sublimee.boot.locks;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @Configuration
-@ComponentScan
-@EnableAutoConfiguration(exclude = JpaRepositoriesAutoConfiguration.class)
+@SpringBootApplication
+@EnableJpaRepositories(basePackages = "com.sublimee.boot.locks.repository")
 public class Application extends SpringApplication {
 
     public static void main(String[] args) {
